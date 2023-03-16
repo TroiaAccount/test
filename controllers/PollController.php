@@ -125,7 +125,7 @@ class PollController extends Poll
         $user = $this->getUser();
         $getRandom = Poll::where(['user_id' => $user->id])->random();
         $answer = new Answer;
-        $getAnswers = $answer->where(['poll_id' => $getRandom['id']])->get();
+        $getAnswers = $answer->where(['poll_id' => $getRandom['id'], 'is_acrive' => 1])->get();
         return json_encode(['status' => true, 'poll' => $getRandom, 'answers' => $getAnswers]);
     }
 
