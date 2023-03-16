@@ -1,7 +1,15 @@
 <?php
 
-class UserController extends Helpers
+
+class UserController extends User
 {
+
+    public function registerPage(){
+        include 'views/register.php';
+    }
+    public function loginPage(){
+        include 'views/login.php';
+    }
 
     public function login()
     {
@@ -12,15 +20,15 @@ class UserController extends Helpers
         $email = $_POST['email'];
         $password = $_POST['password'];
 
-        $result = $this->conn->query("SELECT * FROM users WHERE email='$email'");
-
-        if ($result->num_rows($result) == 1) {
-            $row = $result->fetch_assoc($result);
-            if (password_verify($password, $row['password'])) {
+        $result = User::where(['email' => $email])->first();
+        if($result != null){
+            if (password_verify($password, $result['password'])) {
                 $generateToken = $this->generateToken();
                 $_SESSION['token'] = $generateToken;
                 $ip = $_SERVER['REMOTE_ADDR'];
-                $this->conn->query("INSERT logins (token, user_id, ip_address) VALUES ('$generateToken', '" . $row['id'] . "', '$ip')");
+                $login = new Login;
+                $login->insert(['token' => $generateToken, 'user_id' => $result['id'], 'ip_address' => $ip]);
+
                 $response = ['status' => true, 'data' => "Success"];
             } else {
                 $response['errors'] = "Invalid email or password!";
@@ -29,7 +37,17 @@ class UserController extends Helpers
             $response['errors'] = "Invalid email or password!";
         }
 
+
         return json_encode($response);
+    }
+
+    private function generateApiToken(){
+        $token = md5(time() . rand() . time() . rand() . time() . rand() . time());
+        $find = User::where(['api_token' => $token])->first();
+        if($find != null) {
+            $token = $this->generateApiToken();
+        }
+        return $token;
     }
 
     public function register()
@@ -43,21 +61,29 @@ class UserController extends Helpers
         $password = $_POST["password"];
 
 
-        $result = $this->conn->query("SELECT * FROM users WHERE email='$email'");
+        $result = User::where(['email' => $email])->first();
 
-        if ($result->num_rows($result) > 0) {
+        if ($result != null) {
             $response['errors'] = "This email is already registered";
         } else {
             // Хешування пароля перед збереженням у базі даних
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
+            $api_token = $this->generateApiToken();
             // Збереження даних у базі даних
-            $sql = "INSERT INTO users (email, password) VALUES ('$email', '$hashed_password')";
-            $this->conn->query($sql);
+            User::insert(['email' => $email, 'password' => $hashed_password, 'api_token' => $api_token]);
             $response = ['status' => true, 'data' => "Registration successful!"];
         }
 
 
         return json_encode($response);
+    }
+
+    public function logout(){
+        $getUser = $this->getUser();
+        $login = new Login;
+        $mySession = $_SESSION['token'];
+        $login->where(['token' => $mySession, 'user_id' => $getUser->id])->delete();
+        unset($_SESSION['token']);
+        return header("Location: /login");
     }
 }

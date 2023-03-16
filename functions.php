@@ -5,15 +5,19 @@ class Helpers
 
     protected $conn;
 
-    public function __construct($conn)
+    public function __construct()
     {
-        $this->conn = $conn;
+        $this->conn = new mysqli('127.0.0.1', 'root', '', 'test');
+        if ($this->conn->connect_error) {
+            die('Ошибка подключения (' . $this->conn->connect_errno . ') ' . $this->conn->connect_error);
+        }
     }
 
     public function generateToken()
     {
         $token = md5(time() . rand() . time() . rand() . time() . rand());
-        $get = mysqli_fetch_assoc(mysqli_query($this->conn, "SELECT * FROM `logins` WHERE `token` LIKE '$token'"));
+        $login = new Login;
+        $get = $login->where(['token' => $token])->first();
         if ($get != null) {
             $token = $this->generateToken($token);
         }
@@ -25,10 +29,17 @@ class Helpers
         $token = $_SESSION['token'] ?? null;
         $user = null;
         if ($token != null) {
-            $get = mysqli_fetch_assoc(mysqli_query($this->conn, "SELECT * FROM `logins` WHERE `token` LIKE '$token'"));
+            
+            $login = new Login;
+            $get = $login->where(['token' => $token])->first();
             if ($get != null) {
-                $user = (object) mysqli_fetch_assoc(mysqli_query($this->conn, "SELECT * FROM `users` WHERE `id` = '" . $get['user_id'] . "'"));
+                $userModel = new User;
+                $user = (object) $userModel->where(['id' => $get['user_id']])->first();
             }
+        }
+        if(isset($_GET['token'])){
+            $userModel = new User;
+            $user = (object) $userModel->where(['api_token' => $_GET['token']])->first();
         }
         return $user;
     }
@@ -118,5 +129,10 @@ class Helpers
             header("Content-Type: application/json");
             exit;
         }
+    }
+
+    public function __destruct()
+    {
+        mysqli_close($this->conn);
     }
 }

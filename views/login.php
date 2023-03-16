@@ -14,7 +14,7 @@
                             <?php echo $success; ?>
                         </div>
                     <?php endif; ?>
-                    <form method="post" name="form" data-action="login" action="<?= $helpers->getUrl('api/login') ?>">
+                    <form method="post" name="form" data-action="login" action="<?= $this->getUrl('api/login') ?>">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
                             <input type="text" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>

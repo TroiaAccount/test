@@ -1,8 +1,8 @@
 <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
-        <h5 class="mb-0">Polls(<?= $conn->query("SELECT COUNT(*) FROM polls WHERE user_id = $user->id")->fetch_assoc()['COUNT(*)'] ?>)</h5>
+        <h5 class="mb-0">Polls(<?= count($getMyPolls) ?>)</h5>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">
-            Открыть всплывашку
+            Create poll
         </button>
     </div>
     <div class="card-body">
@@ -19,8 +19,7 @@
             <tbody>
 
                 <?php
-                $get = $conn->query("SELECT * FROM polls WHERE user_id = $user->id");
-                while ($poll = $get->fetch_assoc()) {
+                foreach ($getMyPolls as $poll) {
 
                 ?>
                     <tr data-id="<?= $poll['id'] ?>">
@@ -29,9 +28,9 @@
                         <td><?= $poll['is_active'] ? '<a class="btn btn-primary">Published</a>' : '<a class="btn btn-danger">Draft</a>' ?></td>
                         <td><?= $poll['created_at'] ?></td>
                         <td>
-                            <button type="button" class="btn btn-primary"><i class="far fa-eye"></i></button>
+                           
                             <button type="button" data-bs-toggle="modal" name="update_button" data-poll-id="<?= $poll['id'] ?>" data-bs-target="#modal_update" class="btn btn-success"><i class="fas fa-edit"></i></button>
-                            <form name="form" data-action="destroy" data-id="<?= $poll['id'] ?>" action="<?= $helpers->getUrl('api/poll-destroy') ?>" method="post">
+                            <form name="form" data-action="destroy" data-id="<?= $poll['id'] ?>" action="<?= $this->getUrl('api/poll-destroy') ?>" method="post">
                                 <input type="hidden" name="poll_id" value="<?= $poll['id'] ?>">
                                 <button type="submit" class="btn btn-danger"><i class="far fa-trash-alt"></i></button>
                             </form>
@@ -54,7 +53,7 @@
                 <h5 class="modal-title" id="store_poll">Store poll</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="<?= $helpers->getUrl('/api/poll-store') ?>" data-action="store" name="form" method="post">
+            <form action="<?= $this->getUrl('/api/poll-store') ?>" data-action="store" name="form" method="post">
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="title">Title:</label>
@@ -96,7 +95,7 @@
                 <h5 class="modal-title" id="update_poll">Update poll </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="<?= $helpers->getUrl('/api/poll-update') ?>" data-action="store" name="form" method="post">
+            <form action="<?= $this->getUrl('/api/poll-update') ?>" data-action="update" name="form" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="poll_id" id="poll_id">
                     <div class="form-group">
@@ -140,6 +139,18 @@
         });
 
         $(document).on('click', '.remove-answer', function() {
+            const id = $(this).parent().attr('data-answer-id');
+            if(id > 0){
+                $.ajax({
+                url: '<?= $this->getUrl('/api/poll-destroy-answer') ?>',
+                method: 'get',
+                dataType: 'json',
+                data: `?answer_id=${id}`,
+                success: function(data){
+                    
+                }
+            });
+            }
             $(this).parent().remove();
         });
 
@@ -148,7 +159,7 @@
         $("body").on('click', 'button[name=update_button]', function(){
             let id = $(this).attr('data-poll-id');
             $.ajax({
-                url: '<?= $helpers->getUrl('/api/poll-update-get') ?>',
+                url: '<?= $this->getUrl('/api/poll-update-get') ?>',
                 method: 'get',
                 dataType: 'json',
                 data: `?poll_id=${id}`,
@@ -163,7 +174,7 @@
                     }
   
                     $("#answers_update").html('<label for="answer">Answers:</label>');
-                    
+                    $("#poll_id").val(id);
                     data.answers.forEach((element) => {
            
                         let append = `
@@ -175,7 +186,7 @@
                         
                         if(i != 0){
                            append = `
-                            <div class="input-group mb-3">
+                            <div class="input-group mb-3" data-answer-id="${element.id}">
                                 <input type="text" value="${element.answer}" class="form-control" name="answers[${element.id}][answer]">
                                 <input type="number" value="${element.votes}" class="form-control" name="answers[${element.id}][votes]" placeholder="Votes">
                                 <button class="btn btn-danger remove-answer" type="button" >Remove</button>

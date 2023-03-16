@@ -16,9 +16,9 @@ $("body").on('submit', 'form[name=form]', function (e) {
                 const searchParams = new URLSearchParams(form.serialize());
                 const params = {};
                 for (const [key, value] of searchParams.entries()) {
-                  params[key] = value;
+                    params[key] = value;
                 }
-                
+
                 const date = new Date();
 
                 // Получаем значения года, месяца, дня, часов, минут и секунд
@@ -28,7 +28,7 @@ $("body").on('submit', 'form[name=form]', function (e) {
                 let hours = date.getHours();
                 let minutes = date.getMinutes();
                 let seconds = date.getSeconds();
-                
+
                 // Форматируем значения в нужный формат
                 if (month < 10) { month = "0" + month; }
                 if (day < 10) { day = "0" + day; }
@@ -39,7 +39,7 @@ $("body").on('submit', 'form[name=form]', function (e) {
                 // Соединяем значения в строку в нужном формате
                 const formattedDate = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
 
-                                
+
                 switch (form.attr('data-action')) {
                     case "login":
                         location = "/"
@@ -49,7 +49,7 @@ $("body").on('submit', 'form[name=form]', function (e) {
                         break;
                     case "store":
                         let button = `<a class="btn btn-primary">Published</a>`;
-                        if(params['is_active'] != 1){
+                        if (params['is_active'] != 1) {
                             button = `<a class="btn btn-danger">Draft</a>`;
                         }
                         $("tbody").append(
@@ -59,7 +59,7 @@ $("body").on('submit', 'form[name=form]', function (e) {
                                 <td>${button}</td>
                                 <td>${formattedDate}</td>
                                 <td>
-                                    <button type="button" class="btn btn-primary"><i class="far fa-eye"></i></button>
+                                   
                                     <button type="button" data-bs-toggle="modal" name="update_button" data-poll-id="${data.id}" data-bs-target="#modal_update" class="btn btn-success"><i class="fas fa-edit"></i></button>
                                     <form name="form" data-action="destroy" data-id="${data.id}" action="${data.destroy_url}" method="post">
                                         <input type="hidden" name="poll_id" value="${data.id}">
@@ -69,6 +69,9 @@ $("body").on('submit', 'form[name=form]', function (e) {
                             </tr>`
                         );
                         break;
+                    case "update":
+                        location.reload();
+                    break;
                 }
             } else {
                 if (typeof data.errors == "string") {
