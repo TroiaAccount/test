@@ -19,7 +19,7 @@ class UserController extends User
         ]);
         $email = $_POST['email'];
         $password = $_POST['password'];
-
+        $response = ['status' => false, 'errors' => null];
         $result = User::where(['email' => $email])->first();
         if($result != null){
             if (password_verify($password, $result['password'])) {
@@ -31,10 +31,10 @@ class UserController extends User
 
                 $response = ['status' => true, 'data' => "Success"];
             } else {
-                $response['errors'] = "Invalid email or password!";
+                $response['errors'] = ["Invalid email or password!"];
             }
         } else {
-            $response['errors'] = "Invalid email or password!";
+            $response['errors'] = ["Invalid email or password!"];
         }
 
 

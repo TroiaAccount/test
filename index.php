@@ -33,25 +33,22 @@ if ($route == null) {
 // если в API
 $helpers = new Helpers;
 if (isset($route['api']) && $route['api'] == true) {
+    header('Content-Type: application/json');
     if (isset($route['auth']) && $route['auth'] == true) {
-
         $user = $helpers->getUser();
         if ($user->id == null) {
-
-            header('Content-Type: application/json');
             echo json_encode(['status' => false, 'errors' => "Access denied"]);
             http_response_code(403);
             exit;
         }
-
-        $method = $route['method'];
-        $controller = $route['controller'];
-        $controller = new $controller;
-        $response = $controller->$method();
-        header('Content-Type: application/json');
-        echo $response;
-        exit;
     }
+    $method = $route['method'];
+    $controller = $route['controller'];
+    $controller = new $controller;
+    $response = $controller->$method();
+    header('Content-Type: application/json');
+    echo $response;
+    exit;
 }
 
 ?>
