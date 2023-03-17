@@ -33,21 +33,25 @@ if ($route == null) {
 // если в API
 $helpers = new Helpers;
 if (isset($route['api']) && $route['api'] == true) {
-    if(isset($route['auth']) && $route['auth'] == true){
-    
+    if (isset($route['auth']) && $route['auth'] == true) {
+
         $user = $helpers->getUser();
-        if($user->id == null){
-            
+        if ($user->id == null) {
+
             header('Content-Type: application/json');
             echo json_encode(['status' => false, 'errors' => "Access denied"]);
             http_response_code(403);
             exit;
         }
+
+        $method = $route['method'];
+        $controller = $route['controller'];
+        $controller = new $controller;
+        $response = $controller->$method();
+        header('Content-Type: application/json');
+        echo $response;
+        exit;
     }
-    $response = call_user_func([new $route['controller'](), $route['method']]);
-    header('Content-Type: application/json');
-    echo $response;
-    exit;
 }
 
 ?>
@@ -96,7 +100,10 @@ if (isset($route['api']) && $route['api'] == true) {
     ?>
     <div class="container">
         <?php
-        $response = call_user_func([new $route['controller'](), $route['method']]);
+        $method = $route['method'];
+        $controller = $route['controller'];
+        $controller = new $controller;
+        $response = $controller->$method();
         echo $response;
         ?>
     </div>
